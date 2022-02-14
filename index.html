@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script language="JavaScript">
+
+        String.prototype.replaceAt = function (index, replacement , lastIndex )  {
+            return this.substr(0, index) + replacement + this.substr( lastIndex ? lastIndex : index + replacement.length);
+        }
+
+        function collectVariable(){
+            var aVarName = document.getElementsByClassName("varName");
+            var aVarValue = document.getElementsByClassName("varValue");
+            var aVarInc = document.getElementsByClassName("varIncrementFlag");
+            
+            var ret = {};
+            for(var i = 0 ; i < aVarName.length ; i++){
+                var name = aVarName[i].value;
+
+                if( !name ){
+                    continue;
+                }
+
+                var value = aVarValue[i].value;
+                var inc = aVarInc[i].checked;
+
+                ret[name] = {
+                    value : value,
+                    inc : inc
+                }
+            }
+            return ret;
+        }
+
+        function incrementVariable( oVariableSet ){
+            for(var att in oVariableSet ){
+                if( oVariableSet[att].inc === true ){
+                    oVariableSet[att].value = parseInt( oVariableSet[att].value ) + 1;
+                }
+            }
+        }
+
+        function replaceVariable( text , oVariableSet ){
+            var ret = text;
+            for(var att in oVariableSet ){
+                var varName = `$${att}$`;
+                ret = ret.replaceAll( varName , oVariableSet[att].value);
+            }
+            return ret;
+        }
+
+        function executeReplace() {
+            var inputText = document.getElementById("input_text");
+            var inputRegrex = document.getElementById("input_regrex");
+            var inputReplace = document.getElementById("input_replace_with");
+
+            var inputTextVal = inputText.value;
+            var inputRegrexVal = inputRegrex.value;
+            var inputReplaceVal = inputReplace.value;
+
+            var regExp = new RegExp(inputRegrexVal, "g");
+
+            var oVariableSet = collectVariable();
+
+            if( !inputReplaceVal ){
+                return;
+            }
+
+            var findCount = 0;
+            while ((array1 = regExp.exec(inputTextVal)) !== null) {
+                // console.log(`Found ${array1[0]}. Next starts at ${regExp.lastIndex}.`);
+                findCount += 1;
+                
+                
+                var replacer = replaceVariable(inputReplaceVal , oVariableSet );
+                
+                var curIndex = array1.index;
+                var curLastIndex = regExp.lastIndex
+                inputTextVal = inputTextVal.replaceAt(curIndex , replacer , curLastIndex);
+
+                regExp.lastIndex =  curIndex + replacer.length;
+                incrementVariable(oVariableSet);
+
+            }
+
+            inputText.value = inputTextVal;
+            alert("Found Count : "+findCount);
+
+            
+        };
+
+
+    </script>
+</head>
+
+<body>
+
+    <br><br>
+    <div>Text</div>
+    <textarea id="input_text" rows="30" cols="200"></textarea>
+    <br><br>
+
+    <div>Find (Regrex)</div>
+    <textarea id="input_regrex" rows="5" cols="200"></textarea>
+    <br><br>
+
+    <div>Variable</div>
+    <br>
+    <div>
+        <text>Name : </text>
+        <input class="varName" ></input>
+        <text>Value : </text>
+        <input class="varValue" ></input>
+        <input class="varIncrementFlag" type="checkbox">Increment</input>
+    </div>
+    <div>
+        <text>Name : </text>
+        <input class="varName" ></input>
+        <text>Value : </text>
+        <input class="varValue" ></input>
+        <input class="varIncrementFlag" type="checkbox">Increment</input>
+    </div>
+    <br><br>
+
+    <div>Replace with</div>
+    <textarea id="input_replace_with" rows="5" cols="200"></textarea>
+    <br><br>
+
+    <button onclick="executeReplace()">Replace All</button>
+</body>
+
+</html>
